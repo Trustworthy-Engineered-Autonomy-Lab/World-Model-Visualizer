@@ -4,6 +4,7 @@ import { Routes, Route, NavLink, Navigate } from "react-router-dom";
 import VaeLatentVisualizer from "./VaeLatentVisualizer";
 import StateLatentVisualizer from "./StateLatentVisualizer";
 import LatentRolloutVisualizer from "./LatentRolloutVisualizer"; // ← new
+import SemiInterpretableVisualizer from "./SemiInterpretableVisualizer";
 
 function App() {
   return (
@@ -28,6 +29,17 @@ function App() {
         >
           Latent
         </NavLink>
+        <NavLink
+          to="/semi"
+          style={({ isActive }) => ({
+            textDecoration: "none",
+            fontWeight: isActive ? "700" : "500",
+            color: isActive ? "#2563eb" : "#444",
+          })}
+        >
+          Semi-Interpretable
+        </NavLink>
+
 
         <NavLink
           to="/state"
@@ -56,6 +68,7 @@ function App() {
         <Route path="/" element={<Navigate to="/latent" replace />} />
         <Route path="/latent" element={<VaeLatentVisualizer />} />
         <Route path="/state" element={<StateLatentVisualizer />} />
+        <Route path="/semi" element={<SemiInterpretableVisualizer />} />
         <Route path="/rollout" element={<LatentRolloutVisualizer />} />
         <Route path="*" element={<Navigate to="/latent" replace />} />
       </Routes>
