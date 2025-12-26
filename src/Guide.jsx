@@ -13,7 +13,7 @@ const S = {
   },
 
   // ✅ Wider content
-  container: { maxWidth: 1440, margin: "0 auto" },
+  container: { maxWidth: "90%", margin: "0 auto" },
 
   topBar: {
     display: "flex",
@@ -326,33 +326,33 @@ export default function Guide() {
     <div style={S.page}>
       <div style={S.container}>
         {/* Top bar */}
-        <div style={S.topBar}>
-          <div style={S.brand}>
-            <div style={S.logo} aria-hidden />
-            <div style={S.brandText}>
-              <p style={S.brandTitle}>PIWM Visualizers: User Guide</p>
-            </div>
-          </div>
+        {/* <div style={S.topBar}> */}
+        {/*   <div style={S.brand}> */}
+        {/*     <div style={S.logo} aria-hidden /> */}
+        {/*     <div style={S.brandText}> */}
+        {/*       <p style={S.brandTitle}>PIWM Visualizers: User Guide</p> */}
+        {/*     </div> */}
+        {/*   </div> */}
 
-          <div style={S.pillRow}>
-            <span style={S.pill}>
-              <span style={S.dot("#22c55e")} />
-              Ground Truth
-            </span>
-            <span style={S.pill}>
-              <span style={S.dot("#3b82f6")} />
-              VAE / Latent
-            </span>
-            <span style={S.pill}>
-              <span style={S.dot("#0ea5e9")} />
-              LSTM Rollout
-            </span>
-            <span style={S.pill}>
-              <span style={S.dot("#a855f7")} />
-              PIWM
-            </span>
-          </div>
-        </div>
+        {/*   <div style={S.pillRow}> */}
+        {/*     <span style={S.pill}> */}
+        {/*       <span style={S.dot("#22c55e")} /> */}
+        {/*       Ground Truth */}
+        {/*     </span> */}
+        {/*     <span style={S.pill}> */}
+        {/*       <span style={S.dot("#3b82f6")} /> */}
+        {/*       VAE / Latent */}
+        {/*     </span> */}
+        {/*     <span style={S.pill}> */}
+        {/*       <span style={S.dot("#0ea5e9")} /> */}
+        {/*       LSTM Rollout */}
+        {/*     </span> */}
+        {/*     <span style={S.pill}> */}
+        {/*       <span style={S.dot("#a855f7")} /> */}
+        {/*       PIWM */}
+        {/*     </span> */}
+        {/*   </div> */}
+        {/* </div> */}
 
         {/* Hero */}
         <div style={S.hero}>
