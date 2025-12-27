@@ -1,112 +1,42 @@
-
-import React, { useEffect, useRef, useState } from "react";
-import * as ort from "onnxruntime-web";
+// src/VaeLatentVisualizer.jsx
+import React, { useEffect, useState, useRef } from "react";
+import { useOrtRuntime } from "./hooks/useOrtRuntime";
+import { useRunQueue } from "./hooks/useRunQueue";
+import { IMG_H, IMG_W } from "./utils/canvas";
+import { useVaeDecoderOnly } from "./hooks/useVaeDecoderOnly";
+import { useVaeDecode } from "./hooks/useVaeDecode";
 
 const LATENT_DIM = 16;
-const IMG_H = 96;
-const IMG_W = 96;
 const SCALE = 4; // upscale factor → 96 * 4 = 384
 
 const UNUSED_LATENTS = [0, 2, 1, 3, 4, 6, 7, 8, 13, 14];
 
 function VaeLatentVisualizer() {
-  const [session, setSession] = useState(null);
+  // ORT runtime config (same as PIWM: single-thread, simd, no proxy)
+  useOrtRuntime();
+
+  // Single global queue to serialize ORT runs (prevents ORT wasm overlap issues)
+  const ortQueueRef = useRunQueue();
+
+  // Load ONLY the decoder session (reusing PIWM loader pattern)
+  const { vaeDec: session, loading, error, setError } = useVaeDecoderOnly();
+
   const [latent, setLatent] = useState(() => Array(LATENT_DIM).fill(0));
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   // small offscreen canvas (96x96)
   const smallCanvasRef = useRef(null);
   // big visible canvas (384x384)
   const bigCanvasRef = useRef(null);
 
-  // Load ONNX model once
-  useEffect(() => {
-    async function loadModel() {
-      try {
-        setLoading(true);
-        // assumes public/vae_decoder16.onnx → /vae_decoder16.onnx
-        const s = await ort.InferenceSession.create("/vae_decoder16.onnx");
-        setSession(s);
-      } catch (e) {
-        console.error(e);
-        setError(String(e));
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadModel();
-  }, []);
-
-  // Run inference whenever latent changes (and session is ready)
-  useEffect(() => {
-    async function runInference() {
-      if (!session || !smallCanvasRef.current || !bigCanvasRef.current) return;
-
-      // Build latent vector: [1, LATENT_DIM]
-      const zData = new Float32Array(LATENT_DIM);
-      for (let i = 0; i < LATENT_DIM; i++) {
-        zData[i] = latent[i];
-      }
-      const zTensor = new ort.Tensor("float32", zData, [1, LATENT_DIM]);
-
-      try {
-        const outputs = await session.run({ z: zTensor });
-        const xRecon = outputs["x_recon"]; // Tensor: [1, 3, 96, 96]
-        const data = xRecon.data; // Float32Array
-
-        // --- Draw to small (offscreen) 96x96 canvas ---
-        const smallCanvas = smallCanvasRef.current;
-        const sctx = smallCanvas.getContext("2d");
-
-        const imageData = sctx.createImageData(IMG_W, IMG_H);
-        const rgba = imageData.data;
-        const planeSize = IMG_H * IMG_W; // 9216
-
-        for (let y = 0; y < IMG_H; y++) {
-          for (let x = 0; x < IMG_W; x++) {
-            const idxHW = y * IMG_W + x;
-
-            const r = data[0 * planeSize + idxHW];
-            const g = data[1 * planeSize + idxHW];
-            const b = data[2 * planeSize + idxHW];
-
-            const idxRGBA = idxHW * 4;
-            rgba[idxRGBA + 0] = Math.max(0, Math.min(255, Math.round(r * 255)));
-            rgba[idxRGBA + 1] = Math.max(0, Math.min(255, Math.round(g * 255)));
-            rgba[idxRGBA + 2] = Math.max(0, Math.min(255, Math.round(b * 255)));
-            rgba[idxRGBA + 3] = 255; // alpha
-          }
-        }
-
-        sctx.putImageData(imageData, 0, 0);
-
-        // --- Upscale from small canvas to big visible canvas ---
-        const bigCanvas = bigCanvasRef.current;
-        const bctx = bigCanvas.getContext("2d");
-
-        bctx.imageSmoothingEnabled = false; // no blur
-        bctx.clearRect(0, 0, bigCanvas.width, bigCanvas.height);
-        bctx.drawImage(
-          smallCanvas,
-          0,
-          0,
-          smallCanvas.width,
-          smallCanvas.height,
-          0,
-          0,
-          bigCanvas.width,
-          bigCanvas.height
-        );
-      } catch (e) {
-        console.error(e);
-        setError(String(e));
-      }
-    }
-
-    runInference();
-  }, [session, latent]);
+  // Decode on latent change (reuses your exact pixel pipeline via drawCHWFloatToCanvases)
+  useVaeDecode({
+    vaeDec: session,
+    latent,
+    queueRef: ortQueueRef,
+    smallRef: smallCanvasRef,
+    bigRef: bigCanvasRef,
+    onError: (msg) => setError?.(msg),
+  });
 
   const handleSliderChange = (idx, value) => {
     setLatent((prev) => {
@@ -133,6 +63,10 @@ function VaeLatentVisualizer() {
     }
     setLatent(arr);
   };
+
+  // --- Optional: preserve old "decode on mount" behavior even if latent is all zeros ---
+  // useVaeDecode already runs on first render since latent is initialized.
+  // No additional effect needed.
 
   return (
     <div style={{ justifyContent: "center", padding: 16, fontFamily: "sans-serif" }}>
@@ -180,8 +114,7 @@ function VaeLatentVisualizer() {
                   onChange={(e) => handleSliderChange(i, Number(e.target.value))}
                   style={{
                     width: 200,
-                    // accentColor controls slider thumb/track color in modern browsers
-                    accentColor: isUnused ? "#888888" : "#2563eb", // grey vs blue
+                    accentColor: isUnused ? "#888888" : "#2563eb",
                   }}
                 />
               </div>
@@ -195,13 +128,14 @@ function VaeLatentVisualizer() {
           <p style={{ fontSize: 25, color: "#666", marginBottom: 8 }}>
             Decoded image
           </p>
+
           <canvas
             ref={smallCanvasRef}
             width={IMG_W}
             height={IMG_H}
             style={{ display: "none" }}
           />
-          {/* visible upscaled canvas (96*4 x 96*4) */}
+
           <canvas
             ref={bigCanvasRef}
             width={IMG_W * SCALE}
@@ -214,6 +148,7 @@ function VaeLatentVisualizer() {
               backgroundColor: "#000",
             }}
           />
+
           <div style={{ marginTop: 20 }}>
             <button onClick={resetLatent} style={{ padding: "8px 16px", fontSize: 25 }}>
               Reset Latent
@@ -226,10 +161,7 @@ function VaeLatentVisualizer() {
             </button>
           </div>
         </div>
-
       </div>
-
-
     </div>
   );
 }
