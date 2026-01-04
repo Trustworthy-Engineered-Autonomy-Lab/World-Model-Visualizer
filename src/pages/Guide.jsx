@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const BREAKPOINT = 920; // when stacked, TOC becomes non-sticky
+const BREAKPOINT = 1200; // when stacked, TOC becomes non-sticky
 
 const S = {
   page: {
