@@ -161,22 +161,7 @@ export default function PIWMVisualizer() {
     [styles.kbd]
   );
 
-  const rightBadges = useMemo(
-    () => (
-      <>
-        <Pill styles={styles} bg="rgba(34,197,94,0.10)" border="rgba(34,197,94,0.28)" dotColor="#22c55e">
-          Ground Truth
-        </Pill>
-        <Pill styles={styles} bg="rgba(14,165,233,0.10)" border="rgba(14,165,233,0.26)" dotColor="#0ea5e9">
-          LSTM Rollout
-        </Pill>
-        <Pill styles={styles} bg="rgba(168,85,247,0.10)" border="rgba(168,85,247,0.24)" dotColor="#a855f7">
-          PIWM
-        </Pill>
-      </>
-    ),
-    [styles]
-  );
+
 
   return (
     <div style={styles.page}>
@@ -184,7 +169,6 @@ export default function PIWMVisualizer() {
         styles={styles}
         title="PIWM Visualizer"
         subtitle={subtitle}
-        right={rightBadges}
         callout={
           <>
             <b>Recommended flow:</b> set a clean gt state → <b>sync gt → vae + piwm</b> → apply actions (left/right) →

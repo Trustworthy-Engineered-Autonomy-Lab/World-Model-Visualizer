@@ -233,13 +233,12 @@ export function useUiTheme({ imgW, imgH, scale } = {}) {
       color: "#0f172a",
       minHeight: "calc(100vh - 92px)", // leaves room for TopNav
       padding: "18px 20px 28px",
-      background:
-        "radial-gradient(1200px 700px at 15% -10%, rgba(59,130,246,0.16) 0%, rgba(59,130,246,0) 55%)",
     };
 
     const homeHero = {
       ...hero,
       padding: 18, // Home was slightly roomier than header
+      marginBottom: 12
     };
 
     const homeH1 = {
@@ -292,8 +291,6 @@ export function useUiTheme({ imgW, imgH, scale } = {}) {
       fontFamily: font,
       color: "#0f172a",
       minHeight: "100vh",
-      background:
-        "radial-gradient(1100px 650px at 15% -10%, rgba(59,130,246,0.16) 0%, rgba(59,130,246,0) 55%)",
     };
 
     const topWrap = { padding: "16px 20px 10px" };
@@ -321,13 +318,13 @@ export function useUiTheme({ imgW, imgH, scale } = {}) {
     };
 
     const logo = {
-      width: 36,
-      height: 36,
-      borderRadius: 12,
+      width: "43px",
+      height: "43px",
+      borderRadius: 5,
       backgroundImage: "url(/logo.png)",
       backgroundRepeat: "no-repeat",
       backgroundPosition: "center",
-      backgroundSize: "contain",
+      backgroundSize: "43px 43px",
       boxShadow: "0 10px 25px rgba(15,23,42,0.12)",
       flex: "0 0 auto",
     };
